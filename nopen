@@ -1,0 +1,9 @@
+#!/bin/bash
+#This script allows you to nohup open a
+#program and pumps stdout & stderr to /dev/null
+
+nohup $1 >/dev/null 2>&1 &
+
+pid=$( ps auxwww |grep $1 | head -1 |awk '{print $2}' )
+
+echo "PID: $pid"
