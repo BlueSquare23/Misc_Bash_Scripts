@@ -1,0 +1,43 @@
+#!/bin/bash
+#Notes on Arrays in bash
+
+#Putting elements into an array
+#First declare an empty var
+numbers=()
+#Then turn that var into an array by using declare
+declare -a numbers
+#Define an index externally
+index='0'
+#Create a for loop which appends the numbers 1-5 to the empty array
+for i in {1..5}
+do
+   numbers[$index]=$i
+   ((index++))
+done
+#Print all of the elements of the array
+echo "These are the numbers one through five:"
+echo ${numbers[@]}
+#Defining an arbitrary var to demonstrate passing a var to an array
+var=4
+echo ${numbers[var]}
+
+#Notice how the way the array is addressed throughout the above code changes.
+#This is mostly due to the bastardized birth of bash scripting. When addressing
+#the array to enter values there is no '$' before the array name. And when it is
+#called the array is fomatted as ${ARRAY[*]}.
+
+
+#This is a function for finding the index of an element in an array
+my_array=(red orange green)
+value='green'
+
+get_index(){
+for i in "${!my_array[@]}"; do
+   if [[ "${my_array[$i]}" = $1 ]]; then
+       echo "${i}";
+   fi
+done
+}
+#Print the index by calling the function and passing it the an argument of the element
+echo "The index of orange is:"
+get_index orange
