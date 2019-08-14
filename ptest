@@ -1,0 +1,16 @@
+#!/bin/bash
+#Arbitrary long running script for process managment testing
+
+echo Running...
+
+trap 'echo TESTING >> file.txt' SIGUSR1
+
+count=1
+while [ $count -le 10 ]
+do
+echo "Loop number: $count"
+sleep 10
+count=$[ $count + 1 ]
+done
+
+echo 'Exiting!'
