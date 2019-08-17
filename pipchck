@@ -1,0 +1,26 @@
+#!/bin/bash
+#This script runs once daily and checks if the public IP address
+#has changed. If it has it alerts me of the change via E-mail
+
+#The last know public facing IP
+previousIP='000.000.000.000'
+
+today=$(date +%F)
+
+#The current public facing IP according to Cisco
+currentIP=$(dig myip.opendns.com @resolver1.opendns.com +short)
+
+digchck=$(echo $?)
+
+if [ $digchck -gt 0 ]
+then
+   currentIP=$(dig myip.opendns.com @resolver2.opendns.com +short)
+fi
+
+#If the IP's are diffent cURL E-mails me
+if [ $currentIP != $previousIP ]
+then
+   echo mismatch
+   printf "From: me <example@example.com>\nTo: me <example@example.com>\nSubject: IP Address Change\nDate: $today\n\nThe public facing IP address of the server has changed.\nThe new IP address is: $currentIP\n" > /full/path/to/email.txt
+   curl -k smtps://mail.example.com --user "username:password" -v --login-options AUTH=PLAIN --mail-from example@example.com --mail-rcpt example@example.com --upload-file /full/path/to/email.txt
+fi
