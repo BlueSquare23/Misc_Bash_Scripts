@@ -1,0 +1,21 @@
+#!/bin/bash
+#This script searches google for a term or two from the CLI
+
+if [[ $1 == "-h" ]] || [[ $1 == "--help" ]]
+then
+   printf "\n"
+   printf "		CLI Search		\n"
+   printf "	help		-h or --help	\n"
+   printf "	image search	-i		\n"
+   printf "\n"
+elif [[ $1 == "" ]]
+then
+  echo -n "Google Search: "
+  read searchString
+  nohup google-chrome https://www.google.com/search?q=${searchString// /+} >/dev/null 2>&1 &
+elif [[ $1 == "-i" ]]
+then
+  echo -n "Google Image Search: "
+  read searchString
+  nohup google-chrome https://www.google.com/search?tbm=isch\&q=${searchString// /+} >/dev/null 2>&1 &
+fi
