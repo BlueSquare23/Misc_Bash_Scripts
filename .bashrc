@@ -1,11 +1,13 @@
-export PATH=$PATH:/home/bluesoldier/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/bin/:/usr/krb5/bin:/usr/pair/bin:/usr/local/bin 
-
-shopt -s autocd #Automatically changes directory without having to type cd
-
-# System-wide .bashrc file for interactive bash(1) shells.
+# My .bashrc file for interactive bash(1) shells.
 
 # To enable the settings / commands in this file for login shells as well,
 # this file has to be sourced in /etc/profile.
+
+#PATH
+export PATH=$PATH:/usr/sbin:/usr/bin:/sbin:/bin:/root/bin/:/home/bluesoldier23/bin:/usr/local/sbin:/usr/local/bin
+
+#Automatically changes directory to path w/out cd
+shopt -s autocd 
 
 # If not running interactively, don't do anything
 [ -z "$PS1" ] && return
@@ -20,8 +22,17 @@ if [ -z "${debian_chroot:-}" ] && [ -r /etc/debian_chroot ]; then
 fi
 
 # set a fancy prompt (non-color, overwrite the one in /etc/profile)
-export PS1='${debian_chroot:+($debian_chroot)}\[\e[57m\]\u\[\e[m\]\[\e[93m\]@\[\e[m\]\[\e[57m\]\h\[\e[m\]\[\e[93m\]:\[\e[m\]\[\e[93m\]\\$\[\e[m\]\[\e[57m\]\W\[\e[m\]\[\e[93m\]>\[\e[m\] '
-#\u@\h:\w\$ (<-- Default) [\e[m\]\[\e[57m\]\w\[\e[m\]\[\e[93m\]:\[\e[m\]\[\e[93m\]\\$\[\e[m\]
+#export PS1='${debian_chroot:+($debian_chroot)}\[\e[57m\]\u\[\e[m\]\[\e[93m\]@\[\e[m\]\[\e[57m\]\h\[\e[m\]\[\e[93m\]:\[\e[m\]\[\e[93m\]\\$\[\e[m\]\[\e[57m\]\W\[\e[m\]\[\e[93m\]>\[\e[m\]'
+export PS2="> "
+
+#Setting the right prompt
+rightprompt()
+{
+    printf "%*s" $COLUMNS "`date '+%D %r'`"
+}
+
+PS1='\[$(tput sc; rightprompt; tput rc)\]${debian_chroot:+($debian_chroot)}\[\e[57m\]\u\[\e[m\]\[\e[93m\]@\[\e[m\]\[\e[57m\]\h\[\e[m\]\[\e[93m\]:\[\e[m\]\[\e[93m\]\\$\[\e[m\]\[\e[57m\]\W\[\e[m\]\[\e[93m\]>\[\e[m\] '
+
 
 # Commented out, don't overwrite xterm -T "title" -n "icontitle" by default.
 # If this is an xterm set the title to user@host:dir
@@ -77,17 +88,11 @@ export GREP_COLOR='3;93'
 
 #Aliases
 
-#alias ksu='/usr/bin/ksu -n bluesoldier23/root -e /bin/bash --rcfile ~bluesoldier23/.bashrc'
-alias sudo='sudo '
 alias grep='grep --color=auto'
 alias fgrep='fgrep --color=auto'
 alias egrep='egrep --color=auto'
-#alias kinit="/usr/bin/kinit -f bluesoldier23;"
-#alias go="/usr/pair/bin/go.pl;"
-alias ll="ls -lah"
-#alias tikcl="/usr/local/bin/tikcl"
-alias killchrome="kill $(ps auxwww |grep chrome | head -1 |awk '{print $2}') "
-
+alias ll="ls -lh"
+alias la="ls -lah"
 
 #Functions
 
@@ -98,35 +103,35 @@ host -t ns $1
 host -t txt $1
 }
 
-function cdr(){
-#This function serves as a recusive cd
-#If there is only one dir below the pwd then cd again
-let count=0
-
-for x in $(ls $1);
-do
-let count++
-done
-
-if [ $count -gt 1 ]
-then
-   echo "There are multiple directories below $1"
-   dirs=$(ls $1)
-   echo $dirs
-elif [ $count -eq 1 ]
-then
-   subdir=$(ls $1)
-   cd $1 && cd $subdir
-fi
+function phpinfo(){
+echo "<? passthru('whoami'); phpinfo(); ?>" >> z.php
+user=$(ls -lah |head -2|tail -1|awk '{print $3}')
+group=$(ls -lah |head -2|tail -1|awk '{print $4}')
+chown $user:$group z.php
 }
 
-mkcdir(){
+function whose(){
+whois $1|sed -n '/Domain Name/,/Last update/p'
+}
+
+function mkcdir(){
 mkdir $1
 cd $1
 }
 
-#SSH aliases
-alias LaptopServer='ssh -p2222 bluesoldier23@192.168.1.214'
-alias WebServer='ssh johnlradford@johnlradford.pairserver.com'
-alias RaspberryPi='ssh pi@192.168.1.181'
-alias lld='ll | egrep "d--|dr-|d-w|drw"'
+#Checks if build is still running
+function bcheck(){
+BUILD=false
+while [ $BUILD = false ]
+do
+        ps aux|grep build|grep -v grep
+        if [[ `echo $?` = 0 ]]
+        then
+                echo "Build still running..."
+                sleep 5
+        else
+                echo "Build finished running!"
+                BUILD=true
+        fi
+done
+}
