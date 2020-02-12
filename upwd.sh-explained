@@ -1,0 +1,41 @@
+#!/bin/bash
+#Prints other users' pwd
+#Note: This script is kinda garbage. Sorry...
+
+#Starts counter at 0 for later loop ('0' is first /pts#)
+c=0
+#If chain to handle -u option
+if [ -z "$1" ]	#If no options
+then
+	users=$(who|awk '{print $1}')	#Initialize the array of users with all signed in users
+elif [ $1 = "-u" ] && [ $2 != $USER ]	#Elseif -u option is selected and the user supplied is not your own
+then
+	users=$2	#Set the array to just the user in $2
+	c=`who|grep $2|awk '{print $2}'|cut -d '/' -f2`	#and set the count to that users tty number
+else
+	echo "Usage: upwd [-u] [username]" #Echos usage chart to taunt users everytime they mess up
+fi
+
+#Start looping through the array of user(s)
+for user in $users
+do
+	if [ `tty|cut -d '/' -f4` -eq $c ] #Tests if the users pts is equal to the count (needed because it entails a different ps parsing command)
+	then
+		spid=$(ps -efH | grep pts/$c|egrep -w 'bash|csh|dash|fish|ksh|mksh|tcsh|zsh'|grep -v grep|tail -2|head -1|awk '{print $2}') #Grab user's shell pid number (explained below)
+	else
+		spid=$(ps -efH | grep pts/$c|egrep -w 'bash|csh|dash|fish|ksh|mksh|tcsh|zsh'|tail -1|awk '{print $2}')	#Grabs all other shell's pid numbers (see below)
+	fi
+        
+	udir=$(ls -l /proc/$spid/|grep cwd|awk '{print $11}') #Uses the shell's pid number to find their current working directory as listed in proc
+        printf "$user\t$udir\n"	#Prints output
+	((c++))	#Increments counter
+done
+
+#The long command to get the shells pid number was the hardest part of this to
+#figure out and is the most likely point of failure. It uses a modified ps
+#command to get the child processes spawned by the login shell. The command
+#then greps for the users pts/# and shell from its output. The output is then
+#sorted differently depending on whether its the user who's running the command
+#or another one of the users on the system. For a better understanding of how
+#its working pull out the command between $() and run it for yourself. 
+
