@@ -3,73 +3,75 @@
 #broadcast a message to the wall or to write it to their TTY.
 #See `man write` and `man wall` for more infomation.
 
-WRITE=/usr/bin/write
-WALL=/usr/bin/wall
-DATE=/bin/date
-STAT=/usr/bin/stat
-SUDO=/usr/bin/sudo
-CAT=/bin/cat
-WHO=/usr/bin/who
-AWK=/usr/bin/awk
-HEAD=/usr/bin/head
-
 #Get options which have been passed
-while getopts :hwe: options 
+while getopts :hwrse: options 
 do
         case ${options} in
                 h) HELP=1;;
 		w) WRITE=1;;
-                e) EDITOR=$OPTARG;;
-		?) printf "Usage: message [-h] [-e] [args]\n"
+		r) READ=1;;
+		s) SIL=1;;
+                e) ED=$OPTARG;;
+		?) printf "Usage: message [-h] [-e] [args]\n" && exit
         esac
 done
 shift $((OPTIND -1))
 
 function HELPMENU(){
         printf "\n"
-	printf "                Message Help            \n"
-        printf "        help            -h		\n"
-	printf "        write		-w		\n"
-	printf "        editor          -e [editor]	\n"
+	printf "                Message Help    	        \n"
+        printf "        help            	-h		\n"
+	printf "        write to user		-w		\n"
+	printf "        read chat		-r		\n"
+	printf "        silent (no log)		-s		\n"
+	printf "        editor          	-e [editor]	\n"
         printf "\n"
 	exit
 }
 
-if [[ $HELP = 1 ]]
-then
-	HELPMENU
-fi
+#Prints help menu
+[[ $HELP = 1 ]] && HELPMENU
+
+#Read from the chatlog
+[[ $READ = 1 ]] && less +F /var/log/chat.log && exit
 
 printf "Write then save your message.\n" > /tmp/`whoami`.message
 
 #Define opening mtime epoc
-OEpoc=$($STAT --format %Z /tmp/`whoami`.message)
+OEpoc=$(stat --format %Z /tmp/`whoami`.message)
 
-if [[ $EDITOR != '' ]]
-then
-	$EDITOR /tmp/`whoami`.message
-fi
+#Sets default editor to nano if not already set
+[ -z "$ED" ] && [ -z "$EDITOR" ] && EDITOR=`which nano` 
+[ -n "$ED" ] && EDITOR=$ED
+
+$EDITOR /tmp/`whoami`.message
 
 #Define closing mtime epoc
-CEpoc=$($STAT --format %Z /tmp/`whoami`.message)
+CEpoc=$(stat --format %Z /tmp/`whoami`.message)
 
 #Either writes to the wall or to another users tty
 if [[ $WRITE = 1 ]] && [[ $OEpoc -lt $CEpoc ]]
 then
-	$WHO
+	w
 	printf "Select user to message: \n"
-	read USER
-	TTY=$($WHO|grep $USER|$AWK '{print $2}'|$HEAD -1)
-	printf "* User, `whoami` wrote on `date '+%D at %T'` to $USER:\n" >> /var/log/chat.log
-	$CAT /tmp/`whoami`.message >> /var/log/chat.log 
-	$CAT /tmp/`whoami`.message | write $USER $TTY
+	read user
+	if [[ $SIL != 1 ]]
+	then
+		tty=$(who|grep $user|awk '{print $2}'|head -1)
+		printf "* User, `whoami` wrote on `date '+%D at %T'` to $user:\n" >> /var/log/chat.log
+		cat /tmp/`whoami`.message >> /var/log/chat.log 
+	fi
+	cat /tmp/`whoami`.message | write $user $tty
 	printf "" > /tmp/`whoami`.message
 
 #If the files was changed, (i.e. if the mtime changed) wall the file
 elif [[ $OEpoc -lt $CEpoc ]]
 then
-	printf "* User, `whoami` wrote on `date '+%D at %T'`:\n" >> /var/log/chat.log
-	$CAT /tmp/`whoami`.message >> /var/log/chat.log 
-	$SUDO $WALL /tmp/`whoami`.message
+	if [[ $SIL != 1 ]]
+	then
+		printf "* User, `whoami` wrote on `date '+%D at %T'`:\n" >> /var/log/chat.log
+		cat /tmp/`whoami`.message >> /var/log/chat.log 
+	fi
+	sudo wall /tmp/`whoami`.message
 	printf "" > /tmp/`whoami`.message
 fi
