@@ -1,5 +1,6 @@
 #!/bin/bash
 #This is a very useful program
+export PATH=$PATH:/usr/games
 
 declare -a cowsayz
 i=0
