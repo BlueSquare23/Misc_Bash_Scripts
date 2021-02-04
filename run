@@ -1,5 +1,0 @@
-#!/bin/bash
-#This script compiles and runs C programs
-gcc $1 -o `echo $1|cut -d . -f1`.out
-printf "Running $1\n-------------------------------\n"
-./`echo $1|cut -d . -f1`.out
