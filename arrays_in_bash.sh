@@ -8,6 +8,9 @@ declare -a array_name=()
 # Declare an array with elements.
 declare -a array_name=(elm1 elm2 elm3)
 
+# Declare and associative array.
+declare -A assoc_array_name=()
+
 
 ## Adding Elements
 # Append elements.
@@ -25,14 +28,20 @@ array_name[8]=elm8
 # Use single quotes around multi-word elements.
 # Ex) array_name[9]='elm 9'
 
+# Add elements to an associative array.
+assoc_array_name[name]=John
 
-## 
+# Add multiple elements to an associative array.
+assoc_array_name+=([age]=26 [height]=5.10)
+
+
+## Addressing Arrays
 # Get the entire array.
 echo Entire array:
 echo "${array_name[@]}"
 echo
 
-# Get particular element.
+# Get a particular element.
 echo Fifth element:
 echo "${array_name[5]}"
 echo
@@ -52,9 +61,13 @@ echo Last element via negative indexing:
 echo "${array_name[-1]}"
 echo
 
+# Get associative array element.
+echo Associative array value for the key name:
+echo "${assoc_array_name[name]}"
+echo
 
 ## Get range of elements.
-# Prints every element after position two to the end of the array.
+# Prints every element from position two to the end of the array.
 echo Values from index to end of array:
 echo "${array_name[@]:2}"
 echo
@@ -64,7 +77,7 @@ echo Values from index zero to index two:
 echo "${array_name[@]:0:2}"
 echo
 
-# Prints the three elements after position two.
+# Prints the three elements from position two onwards.
 echo Three values from index two to index four inclusive:
 echo "${array_name[@]:2:3}"
 echo
@@ -103,6 +116,17 @@ do
 	then
 		echo $index
 	fi
+done
+
+echo
+
+# Print all keys and values for an associative array.
+echo All keys and values for the associative array:
+
+for key in "${!assoc_array_name[@]}"
+do
+	value=${assoc_array_name[$key]}
+	echo "$key : $value"
 done
 
 echo
