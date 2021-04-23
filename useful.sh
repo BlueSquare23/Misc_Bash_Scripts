@@ -1,5 +1,6 @@
 #!/bin/bash
-#This is a very useful program
+# This is a very useful program
+# Requires, `cowsay` and `fortune`
 export PATH=$PATH:/usr/games
 
 declare -a cowsayz

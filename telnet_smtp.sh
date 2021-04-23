@@ -14,7 +14,7 @@ DOMAIN=`echo $EMAIL_ADDR|cut -d @ -f2`
 
 MAILSERVER=`host -t mx $DOMAIN|awk '{print $7}'|sed 's/\.$//'`
 
-AUTH_STR=`echo -ne "$EMAIL_ADDR\x00$EMAIL_ADDR\x00$PASS"|base64 --wrap=0`
+AUTH_STR=`echo -ne "$EMAIL_ADDR\x00$EMAIL_ADDR\x00$PASS"|base64 --wrap=0` #RFC4616
 
 echo $AUTH_STR
 
