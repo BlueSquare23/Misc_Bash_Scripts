@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # This script helps me clean up old files and directories by allowing me to
-# loop through all files in the working dir and stage unneeded files/dirs for deletion.
+# loop through all files in the working dir and stage unneeded files/dirs for
+# deletion. Written by John R., Aug. 2020
 
 trap exit SIGINT
 
