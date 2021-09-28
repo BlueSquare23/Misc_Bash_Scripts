@@ -24,7 +24,7 @@ function catchAndReturn(){
 	t=0
 	while [[ $t -le 5 ]] 
 	do
-		trap "echo 'Team $1 caught signal footBall from PPID $PPID' >> file.log && sleep 1 && ./$script_name throwBall $toTeamNum && exit" SIGUSR1
+		trap "echo 'Team PID $$ caught signal footBall from PPID $PPID' >> file.log && sleep 1 && ./$script_name throwBall $toTeamNum && exit" SIGUSR1
 		sleep 1
 		((t++))
 	done
@@ -43,12 +43,11 @@ function catchAndReturn(){
 # and exits.
 
 function throwBall(){
-	[[ $1 -eq 1 ]] && thrower=2 || thrower=1
 	./$script_name catchAndReturn $1 &
 	export ListenerPid=$!
 	sleep 1
 	kill -10 $ListenerPid
-	echo "Team $thrower throwing signal footBall to child PID $ListenerPid thrower PID $$" >> file.log
+	echo "Team PID $$ throwing signal footBall to child PID $ListenerPid" >> file.log
 	unset ListenerPid
 	exit
 }
