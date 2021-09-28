@@ -51,7 +51,7 @@ function deleteAsk(){
 	echo
 	echo ${deleteItems[@]}
 	echo
-	echo -n "Would you like to perminantly delete them? (y/n): "
+	echo -n "Would you like to permanently delete them? (y/n): "
 	read reply
 
 	case $reply in
