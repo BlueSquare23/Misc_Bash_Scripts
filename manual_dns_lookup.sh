@@ -30,42 +30,53 @@ function zoneDepth(){
 	[[ "${domain: -1}" = '.' ]] || 
 			domain="${domain}."
 
+	# Counts the number of periods in the $domain string.
 	zone_depth=$(grep -o "\." <<< "$domain"|wc -l)	
 	echo "$zone_depth"
 }
 
 ############ recursiveNsLookup()
 # The recursiveNsLookup() finds the authoritative name servers for a supplied
-# domain. It does this by running successive manual name server lookups from the
-# root resolver server on down. I'm using a dig command here to keep asking for
-# the next NS server in the chain.
+# domain. It does this by running successive manual name server lookups from
+# the root resolver server on down. I'm using a dig command here to keep asking
+# for the next NS server in the chain. This function returns / hits its base
+# case when it can either find no more authorities for a given domain or it has
+# dug to the correct depth in the zone hierarchy.
 
 function recursiveNsLookup(){
 	ns_serv=$1
 
 	# If the zone_depth value is zero return the ns server
-	[[ $zone_depth = 0 ]] && echo "$ns_serv" && return
+	[[ $zone_depth = 0 ]] && 
+		echo "$ns_serv" && 
+		return
 
 	# Uses dig to find an authoritative name server for this level in the
 	# zone hierarchy.
-	ns_serv=$(dig @"$ns_serv" any "$domain" \
+	new_ns_serv=$(dig @"$ns_serv" "$domain" \
 		| grep -A1 "AUTHORITY SECTION" \
 		| tail -1 \
 		| awk '{print $5}')
+
+	# If new_ns_serv empty return old ns serv
+	[[ -z $new_ns_serv ]] && 
+		echo $ns_serv && 
+		return
 
 	# Decrement the zone_depth value after ns lookup. 
 	((zone_depth--))
 
 	# Recurse with this level's ns_serv
-	recursiveNsLookup "$ns_serv"
+	recursiveNsLookup "$new_ns_serv"
 }
 
 ############ main()
-# The main() function gets the domain from user input, finds out how many
-# subdomains aka DNS zones deep the supplied domain is, then recurses using
-# that zone depth value as a base case to find an authoritative name server for
-# the domain, and finally runs a dig against that name server to get the
-# domains address record (aka its A record).
+# The main() function does a number of things; it gets the domain from user
+# input, then it calls the zoneDepth() function to determine the zone_depth of
+# the supplied domain, then it calls the recursiveNsLookup() function to get
+# the auth_ns_serv for the supplied domain, finally it runs an A record lookup
+# on auth_ns_serv to see if the supplied domain has an Address record. If the
+# domain doesn't have an A record just return the auth_ns_serv name instead.
 
 function main(){
 	# Get's domain name from user.
@@ -80,8 +91,12 @@ function main(){
 	# a.root-servers.net.
 	auth_ns_serv=$(recursiveNsLookup a.root-servers.net)
 
-	# Runs a dig for the A record for domain.
-	dig @"$auth_ns_serv" A "$domain"|grep -A1 "ANSWER SECTION"
+	# If there's an answer for A record print it else print auth name serv.
+	response=$(dig @"$auth_ns_serv" A "$domain"|grep -A1 "ANSWER SECTION")
+	[[ $? -eq 0 ]] &&
+		echo "$response" ||
+		echo "Authoritative Name Server for $domain is $auth_ns_serv" &&
+		return
 }
 
 main
