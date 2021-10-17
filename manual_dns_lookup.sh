@@ -21,10 +21,6 @@
 # name server for the given domain.
 
 function zoneDepth(){
-	# If the second to last character is a . then exit because that means
-	# the domain name is malformed. More checking of user input to come.
-	[[ "${domain: -2:-1}" = '.' ]] && exit
-
 	# If the last character is . then pass otherwise append a . in prep for
 	# zone_depth expression.
 	[[ "${domain: -1}" = '.' ]] || 
@@ -81,6 +77,13 @@ function recursiveNsLookup(){
 function main(){
 	# Get's domain name from user.
 	read -r -p "Please enter a domain name: " domain
+
+	# Validates supplied domain. Thanks ilkkachu for the validation regex!
+	# https://unix.stackexchange.com/questions/548543/check-valid-subdomain-with-regex-in-bash
+	valid_dom_regex='^([a-zA-Z0-9](([a-zA-Z0-9-]){0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}\.?'
+	! [[ $domain =~ $valid_dom_regex ]] && 
+		echo "Not a valid domain!" &&
+		exit 1
 
 	# Find's number of DNS zones in domain name (aka number of subdomains)
 	# via the zoneDepth() function.
