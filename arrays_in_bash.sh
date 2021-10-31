@@ -11,7 +11,6 @@ declare -a array_name=(elm1 elm2 elm3)
 # Declare and associative array.
 declare -A assoc_array_name=()
 
-
 ## Adding Elements
 # Append elements.
 array_name=("${array_name[@]}" elm4 elm5)
@@ -33,7 +32,6 @@ assoc_array_name[name]=John
 
 # Add multiple elements to an associative array.
 assoc_array_name+=([age]=26 [height]=5.10)
-
 
 ## Addressing Arrays
 # Get the entire array.
@@ -194,7 +192,6 @@ done << EOF
 EOF
 
 # Print the lines again.
-
 for line in "${file_lines[@]}"
 do
 	echo "$line"
@@ -205,9 +202,13 @@ echo
 ## Deleting elements
 # Delete an element via its index.
 echo "Delete an element via its index:"
+
 array_name=( blah fart foo bar )
+
 echo "Before: ${array_name[*]}"
+
 unset "array_name[2]"
+
 echo "After: ${array_name[*]}"
 
 echo
@@ -246,20 +247,25 @@ echo
 echo "Subtract array2 from array1"
 array1=( blah fart foo bar plop snark )
 array2=( blah plop snark )
+
 echo "Array 1: ${array1[*]}"
 echo "Array 2: ${array2[*]}"
 
 array1_minus_array2=( $(echo "${array1[@]}" "${array2[@]}" | tr ' ' '\n' | sort | uniq -u) )
-echo "Array 2 minus Array 2: ${array1_minus_array2[*]}"
+echo "Array 1 minus Array 2: ${array1_minus_array2[*]}"
+
 unset array1_minus_array2
+
 echo "Notice how they're alphabetical now."
 
 echo
 
 # Subtract array2 from array1 (long way)
 echo "Subtract array2 from array1"
+
 array1=( blah fart foo bar plop snark )
 array2=( blah plop snark )
+
 echo "Array 1: ${array1[*]}"
 echo "Array 2: ${array2[*]}"
 
@@ -268,4 +274,4 @@ for x in "${array1[@]}" ; do
 		array1_minus_array2+=( "$x" )
 	fi
 done
-echo "Array 2 minus Array 2: ${array1_minus_array2[*]}"
+echo "Array 1 minus Array 2: ${array1_minus_array2[*]}"
