@@ -14,13 +14,13 @@ declare -A assoc_array_name=()
 
 ## Adding Elements
 # Append elements.
-array_name=(${array_name[@]} elm4 elm5)
+array_name=("${array_name[@]}" elm4 elm5)
 
 # In short hand.
 array_name+=(elm6 elm7)
 
 # Prepend an element.
-array_name=(elm0 ${array_name[@]})
+array_name=(elm0 "${array_name[@]}")
 
 # Add an element by index number.
 array_name[8]=elm8
@@ -82,6 +82,21 @@ echo Three values from index two to index four inclusive:
 echo "${array_name[@]:2:3}"
 echo
 
+# Check if element is in array
+echo "Checks to see if 'elm7' is in array:"
+value="elm7"
+if [[ "${array_name[*]}" =~ ${value} ]] ; then
+	echo "The value: $value is in array!"
+fi
+
+echo
+
+# Check if element is in array (short hand)
+echo "Checks to see if 'elm4' is in array:"
+[[ "${array_name[*]}" =~ "elm4" ]] &&
+	echo "The value: elm4 is in array!"
+
+echo
 
 ## Iterating over arrays.
 # Print array elements one by one.
@@ -89,6 +104,18 @@ echo Print array elements one by one:
 for elm in "${array_name[@]}"
 do
 	echo $elm
+done
+
+echo
+
+# Check if element is in array (long hand)
+echo "Checks to see if 'elm6' is in array (the long way):"
+value="elm6"
+for elm in "${array_name[@]}"
+do
+	if [[ $elm = "$value" ]] ; then
+		echo "The value: $value is in array!"
+	fi
 done
 
 echo
@@ -112,7 +139,7 @@ value="elm4"
 
 for index in "${!array_name[@]}"
 do
-	if [[ "${array_name[$index]}" = $value ]]
+	if [[ "${array_name[$index]}" = "$value" ]]
 	then
 		echo $index
 	fi
@@ -131,7 +158,20 @@ done
 
 echo
 
-# Read lines from a file into an array.
+# Read lines from a file into an array (easy way).
+# Puts dummy data into file
+for x in {1..5} ; do echo $x >> /tmp/blah.txt ; done
+
+# Uses builtin bash readarray function to read in array from file.
+readarray -t file_contents_array < /tmp/blah.txt
+
+rm /tmp/blah.txt
+
+echo "Array of file contents: ${file_contents_array[*]}"
+
+echo
+
+# Read lines from a file into an array (hard way).
 echo Putting lines from a file into an array and printing them:
 declare -a file_lines=()
 
@@ -157,7 +197,75 @@ EOF
 
 for line in "${file_lines[@]}"
 do
-	echo $line
+	echo "$line"
 done
 
 echo
+
+## Deleting elements
+# Delete an element via its index.
+echo "Delete an element via its index:"
+array_name=( blah fart foo bar )
+echo "Before: ${array_name[*]}"
+unset "array_name[2]"
+echo "After: ${array_name[*]}"
+
+echo
+
+# Deleting an element using its value.
+echo "Delete an element using its value:"
+array_name=( blah fart foo bar )
+echo "Before: ${array_name[*]}"
+
+for x in "${array_name[@]}" ; do
+	if [[ "$x" = "blah" ]] ; then
+		unset "array_name[$x]"
+	fi
+done
+
+echo "After: ${array_name[*]}"
+
+echo 
+
+# Hacky / Shorthand way to remove element.
+echo "Hacky / Shorthand way to remove element:"
+array_name=( blah fart fartfoo bar )
+
+echo "Before: ${array_name[*]}"
+
+array_name=( ${array_name[@]/"fart"} )
+
+echo "After: ${array_name[*]}"
+
+echo "Downside is this works by removing the prefix." 
+echo "So 'fartfoo' is reduced to just 'foo' using this method."
+
+echo 
+
+# Subtract array2 from array1 (short way)
+echo "Subtract array2 from array1"
+array1=( blah fart foo bar plop snark )
+array2=( blah plop snark )
+echo "Array 1: ${array1[*]}"
+echo "Array 2: ${array2[*]}"
+
+array1_minus_array2=( $(echo "${array1[@]}" "${array2[@]}" | tr ' ' '\n' | sort | uniq -u) )
+echo "Array 2 minus Array 2: ${array1_minus_array2[*]}"
+unset array1_minus_array2
+echo "Notice how they're alphabetical now."
+
+echo
+
+# Subtract array2 from array1 (long way)
+echo "Subtract array2 from array1"
+array1=( blah fart foo bar plop snark )
+array2=( blah plop snark )
+echo "Array 1: ${array1[*]}"
+echo "Array 2: ${array2[*]}"
+
+for x in "${array1[@]}" ; do
+	if ! [[ "${array2[*]}" =~ ${x} ]] ; then
+		array1_minus_array2+=( "$x" )
+	fi
+done
+echo "Array 2 minus Array 2: ${array1_minus_array2[*]}"
