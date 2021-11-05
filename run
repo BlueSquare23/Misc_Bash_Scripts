@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+# This script compiles and runs C programs.
+
+[[ -z $1 ]] &&
+	echo "Usage: run FILE_NAME.c"
+
+if gcc $1 ; then
+	echo "Running $1"
+	echo "-------------------------------"
+	./a.out
+fi
