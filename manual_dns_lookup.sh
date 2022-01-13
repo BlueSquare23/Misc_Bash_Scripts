@@ -85,6 +85,30 @@ function main(){
 		echo "Not a valid domain!" &&
 		exit 1
 
+	# Accepted List of Top Level Domains (TLDs)
+	TLDs=( 'com' 'co.uk' 'net' 'info' 'mobi' 'org' 'io' \
+		'biz' 'tv' 'cc' 'eu' 'ru' 'in' 'it' 'sh' 'au' )
+
+	domainsTLD=$(echo $domain|rev|cut -d . -f 1|rev)
+
+	# Loops over TLDs and checks if domainsTLD string contains a tld string. If
+	# it does then pass, otherwise increment i.
+	i=0
+	for tld in ${TLDs[@]}; do
+		if [[ $domainsTLD = $tld ]]; then
+			:
+		else
+			((i++))
+		fi
+	done
+
+	# If the value of i equals the number of elements in the TLDs array then
+	# the domain name must not match any of the tlds and can therefore be
+	# rejected.
+	[[ $i -eq ${#TLDs[@]} ]] && 
+		echo "Not a valid domain!" &&
+		exit 1
+
 	# Find's number of DNS zones in domain name (aka number of subdomains)
 	# via the zoneDepth() function.
 	zone_depth=$(zoneDepth)
