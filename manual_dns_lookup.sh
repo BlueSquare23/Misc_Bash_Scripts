@@ -5,6 +5,51 @@
 # concept / educational script.
 # Written by John R., Oct. 2021
 
+############ domainCheckAndPrep()
+# The domainCheckAndPrep() function does a few things. First it checks that the
+# supplied domain name matches a standard domain name regex. Then it checks if
+# the domain already has a trailing . character and appends it if it doesn't
+# already have one. Then finally it check's that the domain is terminated by a
+# valid TLD.
+
+function domainCheckAndPrep(){
+	# Validates supplied domain. Thanks ilkkachu for the validation regex!
+	# https://unix.stackexchange.com/questions/548543/check-valid-subdomain-with-regex-in-bash
+	valid_dom_regex='^([a-zA-Z0-9](([a-zA-Z0-9-]){0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}\.?'
+	! [[ $domain =~ $valid_dom_regex ]] && 
+		echo "Not a valid domain!" &&
+		exit 1
+
+	# If the last character is . then pass otherwise append a . in prep for
+	# zoneDepth().
+	[[ "${domain: -1}" = '.' ]] || 
+			domain="${domain}."
+
+	# Accepted List of Top Level Domains (TLDs)
+	TLDs=( 'com' 'net' 'org' 'info' 'io' 'ac' 'sh' 'me' 'us' 'ws' 'uk' \ 
+		'biz' 'mobi' 'tv' 'cc' 'eu' 'ru' 'in' 'it' 'au' )
+
+	domainsTLD=$(echo $domain|rev|cut -d . -f 2|rev)
+
+	# Loops over TLDs and checks if domainsTLD string matches one of the tld
+	# strings. If it does then pass, otherwise increment i.
+	i=0
+	for tld in ${TLDs[@]}; do
+		if [[ $domainsTLD = $tld ]]; then
+			:
+		else
+			((i++))
+		fi
+	done
+
+	# If the value of i equals the number of elements in the TLDs array then
+	# the domain name must not match any of the tlds and can therefore be
+	# rejected.
+	[[ $i -eq ${#TLDs[@]} ]] && 
+		echo "Not a valid domain!" &&
+		exit 1
+}
+
 ############ zoneDepth()
 # The zoneDepth() function returns the number of DNS zones deep a particular
 # name is. For example, the domain bluesquare23.sh. is two DNS zones deep
@@ -21,11 +66,6 @@
 # name server for the given domain.
 
 function zoneDepth(){
-	# If the last character is . then pass otherwise append a . in prep for
-	# zone_depth expression.
-	[[ "${domain: -1}" = '.' ]] || 
-			domain="${domain}."
-
 	# Counts the number of periods in the $domain string.
 	zone_depth=$(grep -o "\." <<< "$domain"|wc -l)	
 	echo "$zone_depth"
@@ -54,7 +94,7 @@ function recursiveNsLookup(){
 		| tail -1 \
 		| awk '{print $5}')
 
-	# If new_ns_serv empty return old ns serv
+	# If new_ns_serv empty return old ns_serv.
 	[[ -z $new_ns_serv ]] && 
 		echo $ns_serv && 
 		return
@@ -78,36 +118,8 @@ function main(){
 	# Get's domain name from user.
 	read -r -p "Please enter a domain name: " domain
 
-	# Validates supplied domain. Thanks ilkkachu for the validation regex!
-	# https://unix.stackexchange.com/questions/548543/check-valid-subdomain-with-regex-in-bash
-	valid_dom_regex='^([a-zA-Z0-9](([a-zA-Z0-9-]){0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}\.?'
-	! [[ $domain =~ $valid_dom_regex ]] && 
-		echo "Not a valid domain!" &&
-		exit 1
-
-	# Accepted List of Top Level Domains (TLDs)
-	TLDs=( 'com' 'co.uk' 'net' 'info' 'mobi' 'org' 'io' \
-		'biz' 'tv' 'cc' 'eu' 'ru' 'in' 'it' 'sh' 'au' )
-
-	domainsTLD=$(echo $domain|rev|cut -d . -f 1|rev)
-
-	# Loops over TLDs and checks if domainsTLD string contains a tld string. If
-	# it does then pass, otherwise increment i.
-	i=0
-	for tld in ${TLDs[@]}; do
-		if [[ $domainsTLD = $tld ]]; then
-			:
-		else
-			((i++))
-		fi
-	done
-
-	# If the value of i equals the number of elements in the TLDs array then
-	# the domain name must not match any of the tlds and can therefore be
-	# rejected.
-	[[ $i -eq ${#TLDs[@]} ]] && 
-		echo "Not a valid domain!" &&
-		exit 1
+	# Validate the supplied user input.
+	domainCheckAndPrep
 
 	# Find's number of DNS zones in domain name (aka number of subdomains)
 	# via the zoneDepth() function.
