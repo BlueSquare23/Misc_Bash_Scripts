@@ -56,7 +56,7 @@ function deleteAsk(){
 	read reply
 
 	case $reply in
-		y|Y) rm -R "${deleteItems[@]}" && echo "Items deleted!"
+		y|Y) rm -rf "${deleteItems[@]}" && echo "Items deleted!"
 		;;
 		n|N) echo "Exiting, no files deleted" && exit
 		;;
