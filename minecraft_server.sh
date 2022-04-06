@@ -7,7 +7,7 @@ start_command="java -Xmx2048M -Xms2048M -jar server.jar nogui"
 
 START(){
 	tmux new-session -d -s MCServer &&
-	tmux send -t MCServer $start_command \
+	tmux send -t MCServer "$start_command" \
 			ENTER &&
 	echo "Minecraft Server Started"
 }
