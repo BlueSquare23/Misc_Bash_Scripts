@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 ## Football: Testing With Multiple Signals
-# Thows a PID footBall back and forth. Warning!!! This script will just run in
+# Thows a PID football back and forth. Warning!!! This script will just run in
 # the background ad-infinitum unless stopped.
 # Written by John R., Sept 2021
 
@@ -15,26 +15,27 @@ script_name=`basename "$0"`
 
 # If this script is started normally, catchAndReturn() is the third function
 # triggered. In our example, Team 1 is catching -- its their trap signal. If
-# Team 1 catches a SIGUSR1 footBall first they'll log that they caught it, then
+# Team 1 catches a SIGUSR1 football first they'll log that they caught it, then
 # log that they're going to throw it, and then finally trigger the script in
 # throwBall mode to Team 2.
 
 function catchAndReturn(){
 	[[ $1 -eq 1 ]] && toTeamNum=2 || toTeamNum=1
 	t=0
+
 	while [[ $t -le 5 ]] 
 	do
-		trap "echo 'Team $1, PID $$ caught signal footBall from PPID $PPID' >> file.log && sleep 1 && ./$script_name throwBall $toTeamNum && exit" SIGUSR1
+		trap "echo 'Team $1, PID $$ caught signal football from PPID $PPID' >> file.log && sleep 1 && ./$script_name throwBall $toTeamNum && exit" SIGUSR1
 		sleep 1
 		((t++))
 	done
 }
 
-# The throwBall() function does two does two things. First it calls this script
-# in catchAndReturn mode in the background setting up the trap listener. In the
-# context of the footBall metaphor consider this like giving the other team a
+# The throwBall() function does two things. First it calls this script in
+# catchAndReturn mode in the background setting up the trap listener. In the
+# context of the football metaphor consider this like giving the other team a
 # heads up that you're going to throw the ball to them. At least I think that's
-# how footBall works? I don't know, this is about signals in bash. 
+# how football works? I don't know, this is about signals in bash. 
 
 # When called in normal start mode, throwBall() is the function triggered right
 # after coinToss(). In our example, throwBall() is called with $1 equal to 1,
@@ -48,7 +49,7 @@ function throwBall(){
 	export ListenerPid=$!
 	sleep 1
 	kill -10 $ListenerPid
-	echo "Team $thrower, PID $$ throwing signal footBall to child PID $ListenerPid from PPID $PPID" >> file.log
+	echo "Team $thrower, PID $$ throwing signal football to child PID $ListenerPid from PPID $PPID" >> file.log
 	unset ListenerPid
 	exit
 }
@@ -65,12 +66,15 @@ function coinToss(){
 # cleanUp() removes the logFile and kills the background shell processes.
 
 function cleanUp(){
-	rm file.log
+	[[ -w file.log ]] && rm file.log
 	kill -9 `pgrep -f "$script_name"`
 }
 
 # For human input
-[[ $1 = 'start' ]] && coinToss
+[[ $1 = 'start' ]] && 
+	echo "Starting..." &&
+	echo "Run: \`pid_football.sh follow\` to watch the game!" && 
+	coinToss
 [[ $1 = 'stop' ]] && cleanUp
 [[ $1 = 'follow' ]] && tail -f file.log
 
@@ -80,11 +84,11 @@ function cleanUp(){
 [[ $1 = 'throwBall' ]] && [[ $2 -eq 1 ]] && throwBall 1
 [[ $1 = 'throwBall' ]] && [[ $2 -eq 2 ]] && throwBall 2
 
-echo "Usage: pid_footBall.sh [start/stop/follow]"
+echo "Usage: pid_football.sh [start/stop/follow]"
 
 # If you'd like to manually spark the engine you can run:
 #
-#	./pid_footBall.sh catchAndReturn 1 & 
+#	./pid_football.sh catchAndReturn 1 & 
 #
 # And then within the 5 second timeout of catchAndReturn() run:
 #
@@ -92,4 +96,4 @@ echo "Usage: pid_footBall.sh [start/stop/follow]"
 #
 # Then you can follow the running exchange with:
 #
-#	./pid_footBall.sh follow
+#	./pid_football.sh follow
