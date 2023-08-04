@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # A simple repl shell for Engineer Man's Piston API.
 
-cleanup(){
+function cleanup(){
 	[[ -f /tmp/data.json ]] && rm /tmp/data.json
 	printf "\n"
 	exit
